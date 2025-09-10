@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'orders',
     'reviews',
     'reservations',
+     'rest_framework', # requied for api 
 ]
 
 MIDDLEWARE = [
@@ -53,6 +54,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "security.middleware.SecurityMiddleware",  # 👈 our custom one
+    
 ]
 
 ROOT_URLCONF = 'restaurant.urls'
