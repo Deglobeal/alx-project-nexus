@@ -1,77 +1,90 @@
 from rest_framework import serializers
-from .models import User
 from django.contrib.auth import authenticate
 import re
+
+from .models import User
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'role', 'username', 'email', 'first_name', 
-            'last_name', 'date_joined', 'address', 'phone'
+            'id', 'role', 'username', 'email', 'first_name',
+            'last_name', 'date_joined', 'address', 'phone', 'password'
         ]
 
+
 class UserRegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(write_only=True)
+    password = serializers.CharField(
+        write_only=True,
+        style={'input_type': 'password'}
+    )
+    password2 = serializers.CharField(
+        write_only=True,
+        style={'input_type': 'password'}
+    )
 
     class Meta:
         model = User
         fields = [
-            'username', 'email', 'first_name', 'last_name', 
+            'username', 'email', 'first_name', 'last_name',
             'password', 'password2', 'address', 'phone'
         ]
 
     def validate(self, attrs):
-        # Check if passwords match
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
-        
-        # Password validation
+
         password = attrs['password']
         username = attrs['username']
-        
+
         if len(password) < 8:
-            raise serializers.ValidationError("Password must be at least 8 characters long.")   
-        if username in password:
-            raise serializers.ValidationError("Password is too similar to the username.")   
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        if username.lower() in password.lower():
+            raise serializers.ValidationError("Password is too similar to the username.")
         if password.isdigit():
-            raise serializers.ValidationError("Password cannot be entirely numeric.")   
+            raise serializers.ValidationError("Password cannot be entirely numeric.")
         if password.lower() in ['password', '12345678', 'qwerty', 'abc123']:
             raise serializers.ValidationError("Password is too common.")
         if not re.search(r'[A-Z]', password):
-            raise serializers.ValidationError("Password must contain at least one uppercase letter.")   
+            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
         if not re.search(r'[a-z]', password):
             raise serializers.ValidationError("Password must contain at least one lowercase letter.")
         if not re.search(r'[0-9]', password):
             raise serializers.ValidationError("Password must contain at least one digit.")
         if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
             raise serializers.ValidationError("Password must contain at least one special character.")
-            
+
         return attrs
-    
+
     def create(self, validated_data):
         validated_data.pop('password2')
-        user = User.objects.create_user(**validated_data)
+        raw_password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(raw_password)
+        user.save()
         return user
+
 
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField()
+    password = serializers.CharField(
+        style={'input_type': 'password'},
+        trim_whitespace=False
+    )
 
-    def validate(self, data):
-        username = data.get('username')
-        password = data.get('password')
+    def validate(self, attrs):
+        username = attrs.get('username')
+        password = attrs.get('password')
 
-        if username and password:
-            user = authenticate(username=username, password=password)
-            if user:
-                if user.is_active:
-                    data['user'] = user
-                    return data
-                else:
-                    raise serializers.ValidationError("User account is disabled.")
-            else:
-                raise serializers.ValidationError("Unable to log in with provided credentials.")
-        else:
+        if not username or not password:
             raise serializers.ValidationError("Must include 'username' and 'password'.")
+
+        user = authenticate(username=username, password=password)
+        if not user:
+            raise serializers.ValidationError("Unable to log in with provided credentials.")
+        if not user.is_active:
+            raise serializers.ValidationError("User account is disabled.")
+
+        attrs['user'] = user
+        return attrs
