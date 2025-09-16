@@ -23,6 +23,13 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
+# defining the UserViewSet
+# handles user registration, login, logout
+# and listing users
+
+# UserViewSet
+# handles user registration, login, logout, and listing users
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -62,6 +69,12 @@ class UserViewSet(viewsets.ModelViewSet):
         logout(request)
         return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
 
+
+# Password reset views
+# handles password reset requests and confirmations
+# PasswordResetView
+# PasswordResetConfirmView
+
 class PasswordResetView(generics.GenericAPIView):
     serializer_class = PasswordResetSerializer
 
@@ -77,6 +90,7 @@ class PasswordResetView(generics.GenericAPIView):
         logger.info(f"Password reset link generated: {reset_link}")
         return Response({"reset_link": reset_link}, status=status.HTTP_200_OK)
 
+# PasswordResetConfirmView
 
 class PasswordResetConfirmView(generics.GenericAPIView):
     serializer_class = PasswordResetConfirmSerializer

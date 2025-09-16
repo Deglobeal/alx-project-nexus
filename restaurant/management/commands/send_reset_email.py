@@ -6,6 +6,8 @@ from django.conf import settings
 
 User = get_user_model()
 
+# Management command to send password reset email to a user
+# Usage: python manage.py send_reset_email <user_email>
 class Command(BaseCommand):
     help = "Send password reset email to a user"
 
@@ -18,7 +20,7 @@ class Command(BaseCommand):
             user = User.objects.get(email=email)
             token = default_token_generator.make_token(user)
             reset_link = f"http://localhost:8000/reset-password/{user.pk}/{token}/"
-
+# In production, send via email
             send_mail(
                 "Password Reset",
                 f"Click the link to reset password: {reset_link}",

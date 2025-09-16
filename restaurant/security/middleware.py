@@ -1,6 +1,10 @@
 import re
 from django.http import HttpResponseForbidden
 
+
+# Middleware to enhance security by filtering malicious requests and adding security headers
+# USED IN: restaurant/settings.py
+
 class SecurityMiddleware:
     """
     Basic middleware to protect Django project against common malware patterns

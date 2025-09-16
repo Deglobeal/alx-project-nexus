@@ -10,6 +10,8 @@ from django.utils.encoding import force_bytes
 User = get_user_model()
 
 
+# serializers for User model and authentication
+# including registration, login, password reset, and password reset confirmation
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,7 +25,10 @@ class UserSerializer(serializers.ModelSerializer):
             'password': {'write_only': True},
             'password2': {'write_only': True},
         }
- 
+
+# New serializer for user registration with enhanced password validation
+# and password confirmation
+# Also includes address and phone fields 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
@@ -67,6 +72,9 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Password must contain at least one special character.")
 
         return attrs
+# Create method to handle user creation with hashed password
+# and removal of password2 from validated data
+# Also saves address and phone fields
 
     def create(self, validated_data):
         validated_data.pop('password2')
@@ -76,6 +84,10 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+# Serializer for user login
+# Validates username and password
+# Authenticates user and checks if active
+# Returns user object on successful validation
 
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -100,7 +112,9 @@ class UserLoginSerializer(serializers.Serializer):
         attrs['user'] = user
         return attrs
     
-
+# New serializers for password reset and confirmation
+# including email validation and password strength checks
+# also handles token generation and user retrieval
 
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -120,6 +134,9 @@ class PasswordResetSerializer(serializers.Serializer):
         # In production, send via email
         return reset_link
 
+# Serializer for confirming password reset
+# with password validation and setting new password
+# also checks token validity and user existence
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     password = serializers.CharField(

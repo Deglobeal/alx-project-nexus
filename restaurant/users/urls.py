@@ -6,6 +6,8 @@ router = DefaultRouter()
 router.register(r'users', UserViewSet)
 
 urlpatterns = [
+
+    # path for the user viewset
     path('', include(router.urls)),
     path('auth/', include('rest_framework.urls')),  # For browsable API login
 
