@@ -19,6 +19,7 @@ from django.urls import path, include
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from users.views import PasswordResetConfirmView
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -38,6 +39,10 @@ urlpatterns = [
     path('api/restaurants/', include('restaurants.urls')),
     path('api/reviews/', include('reviews.urls')),
     path('api/users/', include('users.urls')),
-
-
+    # Adding the password reset URL pattern at the project level
+    path('reset-password/<str:uidb64>/<str:token>/', 
+         PasswordResetConfirmView.as_view(), 
+         name="password_reset_confirm"),
 ]
+    # This allows access to the password reset confirmation view
+    # at the project level, if needed.

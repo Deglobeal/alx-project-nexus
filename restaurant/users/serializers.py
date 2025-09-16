@@ -3,7 +3,13 @@ from django.contrib.auth import authenticate
 import re
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+
+
 User = get_user_model()
+
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -95,6 +101,7 @@ class UserLoginSerializer(serializers.Serializer):
         return attrs
     
 
+
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
@@ -108,6 +115,42 @@ class PasswordResetSerializer(serializers.Serializer):
     def save(self, **kwargs):
         user = self.user
         token = default_token_generator.make_token(user)
-        reset_link = f"http://localhost:8000/reset-password/{user.pk}/{token}/"
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        reset_link = f"http://localhost:8000/reset-password/{uid}/{token}/"
         # In production, send via email
-        return reset_link  
+        return reset_link
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    password = serializers.CharField(
+        write_only=True,
+        style={'input_type': 'password'}
+    )
+    password2 = serializers.CharField(
+        write_only=True,
+        style={'input_type': 'password'}
+    )
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+
+        password = attrs['password']
+        
+        # Reuse the same password validation as in UserRegisterSerializer
+        if len(password) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long.")
+        if password.isdigit():
+            raise serializers.ValidationError("Password cannot be entirely numeric.")
+        if password.lower() in ['password', '12345678', 'qwerty', 'abc123']:
+            raise serializers.ValidationError("Password is too common.")
+        if not re.search(r'[A-Z]', password):
+            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
+        if not re.search(r'[a-z]', password):
+            raise serializers.ValidationError("Password must contain at least one lowercase letter.")
+        if not re.search(r'[0-9]', password):
+            raise serializers.ValidationError("Password must contain at least one digit.")
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+            raise serializers.ValidationError("Password must contain at least one special character.")
+
+        return attrs

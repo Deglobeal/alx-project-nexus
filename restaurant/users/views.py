@@ -4,9 +4,21 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import generics
 from django.contrib.auth import get_user_model
-from .serializers import PasswordResetSerializer, UserSerializer, UserRegisterSerializer, UserLoginSerializer
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth import update_session_auth_hash
 from typing import Any, Dict
 import logging
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_str
+
+from .serializers import (
+    PasswordResetSerializer, 
+    PasswordResetConfirmSerializer,
+    UserSerializer, 
+    UserRegisterSerializer, 
+    UserLoginSerializer
+)
+
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -64,5 +76,35 @@ class PasswordResetView(generics.GenericAPIView):
         reset_link = serializer.save()
         logger.info(f"Password reset link generated: {reset_link}")
         return Response({"reset_link": reset_link}, status=status.HTTP_200_OK)
-        
 
+
+class PasswordResetConfirmView(generics.GenericAPIView):
+    serializer_class = PasswordResetConfirmSerializer
+
+    def post(self, request, uidb64, token):
+        try:
+            # Decode the user id
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        
+        # Check if the token is valid
+        if user is not None and default_token_generator.check_token(user, token):
+            serializer = self.get_serializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Set the new password
+            user.set_password(serializer.validated_data['password'])
+            user.save()
+            
+            # Update session if user is logged in
+            if request.user.is_authenticated:
+                update_session_auth_hash(request, user)
+                
+            return Response({"message": "Password has been reset successfully."}, 
+                          status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Invalid reset link"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
