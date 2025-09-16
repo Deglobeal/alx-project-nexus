@@ -3,12 +3,12 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    ROLE_CHOICES = [
-        ('customer', 'Customer'),
-        ('staff', 'Staff'),
+    ROLE_CHOICES = (
         ('admin', 'Admin'),
-    ]
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='customer')
+        ('staff', 'Staff'),
+        ('customer', 'Customer'),
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
     address = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
 

@@ -1,12 +1,15 @@
-from typing import cast, Dict, Any
 from django.contrib.auth import login, logout
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import generics
+from django.contrib.auth import get_user_model
+from .serializers import PasswordResetSerializer, UserSerializer, UserRegisterSerializer, UserLoginSerializer
+from typing import Any, Dict
+import logging
 
-from .models import User
-from .serializers import UserSerializer, UserRegisterSerializer, UserLoginSerializer
-
+logger = logging.getLogger(__name__)
+User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -30,9 +33,12 @@ class UserViewSet(viewsets.ModelViewSet):
     def login(self, request):
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user'] # type: ignore[attr-defined]
-        login(request, user)
-
+        
+        validated_data = serializer.validated_data
+        if not isinstance(validated_data, dict) or 'user' not in validated_data:
+            return Response({'error': 'Invalid login data'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = validated_data['user']
         login(request, user)
         return Response({
             'user': UserSerializer(user).data,
@@ -43,3 +49,20 @@ class UserViewSet(viewsets.ModelViewSet):
     def logout(self, request):
         logout(request)
         return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
+
+class PasswordResetView(generics.GenericAPIView):
+    serializer_class = PasswordResetSerializer
+
+    def post(self, request, *args, **kwargs):
+        logger.info(f"Password reset request data: {request.data}")
+        serializer = self.get_serializer(data=request.data)
+        
+        if not serializer.is_valid():
+            logger.error(f"Password reset validation errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        reset_link = serializer.save()
+        logger.info(f"Password reset link generated: {reset_link}")
+        return Response({"reset_link": reset_link}, status=status.HTTP_200_OK)
+        
+

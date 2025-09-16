@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 import re
-
-from .models import User
-
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,6 +13,11 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name', 'date_joined', 'address', 'phone', 'password'
         ]
 
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'password2': {'write_only': True},
+        }
+ 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
@@ -88,3 +93,21 @@ class UserLoginSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
+    
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        try:
+            self.user = User.objects.get(email=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("No user with this email.")
+        return value
+
+    def save(self, **kwargs):
+        user = self.user
+        token = default_token_generator.make_token(user)
+        reset_link = f"http://localhost:8000/reset-password/{user.pk}/{token}/"
+        # In production, send via email
+        return reset_link  
