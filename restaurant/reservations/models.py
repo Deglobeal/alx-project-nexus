@@ -21,7 +21,6 @@ class Reservation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reservations')
     table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name='reservations')
     reservation_time = models.DateTimeField()
-    date = models.DateField(auto_now_add=True)
     time = models.TimeField(auto_now_add=True)
     party_size = models.PositiveIntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -30,8 +29,14 @@ class Reservation(models.Model):
 
     # ensure a table cannot be double-booked for the same date and time
     class Meta:
-        unique_together = ['table', 'date', 'time']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['table', 'reservation_time'],
+                name='unique_table_reservation'
+            )
+        ]
+        ordering = ['-reservation_time']
     
     # string representation of the reservation
     def __str__(self):
-        return f"Reservation for {self.party_size} on {self.date} at {self.time}"
+        return f"Reservation by {self.user.username} for {self.party_size} on {self.reservation_time} (Table {self.table.number})"
