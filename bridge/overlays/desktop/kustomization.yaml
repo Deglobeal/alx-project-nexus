@@ -1,0 +1,11 @@
+#! kustomization.yaml
+# Generated code, do not edit
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+    - ../../base
+patches:
+    - path: db-postgres_data-persistentVolumeClaim.yaml
+    - path: db-service.yaml
+    - path: web-C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus\restaurant-persistentVolumeClaim.yaml
+    - path: web-service.yaml

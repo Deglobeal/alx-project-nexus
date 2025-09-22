@@ -1,0 +1,8 @@
+#! 0-alx-project-nexus-namespace.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: alx-project-nexus
+    labels:
+        com.docker.compose.project: alx-project-nexus

@@ -1,0 +1,9 @@
+#! web-C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus\restaurant-persistentVolumeClaim.yaml
+# Generated code, do not edit
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: web-c--users-pc-desktop-intenship-alx-files-alx-project-nexus-restaurant
+    namespace: alx-project-nexus
+spec:
+    storageClassName: "hostpath" # see docker/desktop-storage-provisioner

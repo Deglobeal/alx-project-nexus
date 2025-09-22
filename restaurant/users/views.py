@@ -10,7 +10,7 @@ from typing import Any, Dict
 import logging
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_str
-
+from .models import User
 from .serializers import (
     PasswordResetSerializer, 
     PasswordResetConfirmSerializer,
@@ -21,7 +21,6 @@ from .serializers import (
 
 
 logger = logging.getLogger(__name__)
-User = get_user_model()
 
 # defining the UserViewSet
 # handles user registration, login, logout

@@ -9,6 +9,6 @@ class ReservationSerializer(serializers.ModelSerializer):
         model = Reservation
         fields = [
             'id', 'user', 'user_name', 'table', 'table_number', 
-            'reservation_time', 'date', 'time', 'party_size', 
+            'reservation_time', 'party_size', 
             'status', 'special_requests', 'created_at'
         ]

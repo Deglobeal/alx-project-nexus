@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 from decouple import config
 from pathlib import Path
+import os 
+import environ # pyright: ignore[reportMissingImports]
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +27,7 @@ SECRET_KEY = 'django-insecure-@fjz_zeesg8oug0$b$&l53$z%0b1h4&0bc)x+h_3&$z32^b*zr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"] # quick demo
 
 
 # Application definition
@@ -43,9 +45,10 @@ INSTALLED_APPS = [
     'orders',
     'reviews',
     'reservations',
-     'rest_framework', # requied for api 
+    'rest_framework', # requied for api
+    "rest_framework_simplejwt", 
+ 
 ]
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -81,14 +84,18 @@ WSGI_APPLICATION = 'restaurant.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Initialise environment variables
+env = environ.Env()
+environ.Env.read_env()  # Automatically picks .env in project root
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("DB_NAME", default="restaurant_dbs"),
+        "USER": env("DB_USER", default="restaurants_user"),
+        "PASSWORD": env("DB_PASSWORD", default="mypassword"),
+        "HOST": env("DB_HOST", default="localhost"),
+        "PORT": env("DB_PORT", default="5432"),
     }
 }
 

@@ -1,0 +1,57 @@
+#! web-deployment.yaml
+# Generated code, do not edit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: web
+    namespace: alx-project-nexus
+    labels:
+        com.docker.compose.project: alx-project-nexus
+        com.docker.compose.service: web
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            com.docker.compose.project: alx-project-nexus
+            com.docker.compose.service: web
+    strategy:
+        type: Recreate
+    template:
+        metadata:
+            labels:
+                com.docker.compose.project: alx-project-nexus
+                com.docker.compose.service: web
+                com.docker.compose.network.default: "true"
+        spec:
+            containers:
+                - name: restaurant-web
+                  image: alx-project-nexus-web
+                  imagePullPolicy: IfNotPresent
+                  command: ['python manage.py runserver 0.0.0.0:8000']
+                  env:
+                    - name: DB_HOST
+                      value: "db"
+                    - name: DB_NAME
+                      value: "restaurant_dbs"
+                    - name: DB_PASSWORD
+                      value: "mypassword"
+                    - name: DB_PORT
+                      value: "5432"
+                    - name: DB_USER
+                      value: "restaurants_user"
+                    - name: DEBUG
+                      value: "1"
+                    - name: DJANGO_ALLOWED_HOSTS
+                      value: "localhost 127.0.0.1 [::1]"
+                    - name: SECRET_KEY
+                      value: "your-secret-key"
+                  ports:
+                    - name: web-8000
+                      containerPort: 8000
+                  volumeMounts:
+                    - name: app
+                      mountPath: /app
+            volumes:
+                - name: app
+                  hostPath:
+                    path: C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus\restaurant

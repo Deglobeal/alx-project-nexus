@@ -21,7 +21,6 @@ class Reservation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reservations')
     table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name='reservations')
     reservation_time = models.DateTimeField()
-    time = models.TimeField(auto_now_add=True)
     party_size = models.PositiveIntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     special_requests = models.TextField(blank=True, null=True)
