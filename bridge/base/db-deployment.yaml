@@ -25,16 +25,16 @@ spec:
         spec:
             restartPolicy: Always
             containers:
-                - name: restaurant-db
-                  image: postgres:15
+                - name: db
+                  image: postgres:14
                   imagePullPolicy: IfNotPresent
                   env:
                     - name: POSTGRES_DB
-                      value: ""
+                      value: "restaurant_dbs"
                     - name: POSTGRES_PASSWORD
-                      value: ""
+                      value: "mypassword"
                     - name: POSTGRES_USER
-                      value: ""
+                      value: "restaurants_user"
                   ports:
                     - name: db-5432
                       containerPort: 5432

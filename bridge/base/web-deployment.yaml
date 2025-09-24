@@ -24,10 +24,10 @@ spec:
                 com.docker.compose.network.default: "true"
         spec:
             containers:
-                - name: restaurant-web
+                - name: web
                   image: alx-project-nexus-web
                   imagePullPolicy: IfNotPresent
-                  command: ['python manage.py runserver 0.0.0.0:8000']
+                  command: ['python restaurant/manage.py runserver 0.0.0.0:8000']
                   env:
                     - name: DB_HOST
                       value: "db"
@@ -43,6 +43,12 @@ spec:
                       value: "1"
                     - name: DJANGO_ALLOWED_HOSTS
                       value: "localhost 127.0.0.1 [::1]"
+                    - name: DJANGO_SUPERUSER_EMAIL
+                      value: "kachimaxy1@gmail.com"
+                    - name: DJANGO_SUPERUSER_PASSWORD
+                      value: "Dononye12@123"
+                    - name: DJANGO_SUPERUSER_USERNAME
+                      value: "admin"
                     - name: SECRET_KEY
                       value: "your-secret-key"
                   ports:
@@ -54,4 +60,4 @@ spec:
             volumes:
                 - name: app
                   hostPath:
-                    path: C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus\restaurant
+                    path: C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus

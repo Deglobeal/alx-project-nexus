@@ -9,7 +9,7 @@ resources:
     - db-postgres_data-persistentVolumeClaim.yaml
     - db-service.yaml
     - default-network-policy.yaml
-    - web-C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus\restaurant-persistentVolumeClaim.yaml
+    - web-C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus-persistentVolumeClaim.yaml
     - web-deployment.yaml
     - web-expose.yaml
     - web-service.yaml

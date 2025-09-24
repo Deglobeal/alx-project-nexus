@@ -14,6 +14,7 @@ from pathlib import Path
 import os 
 import environ # pyright: ignore[reportMissingImports]
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,7 +28,7 @@ SECRET_KEY = 'django-insecure-@fjz_zeesg8oug0$b$&l53$z%0b1h4&0bc)x+h_3&$z32^b*zr
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"] # quick demo
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -70,7 +71,9 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.template.context_processors.media',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -86,18 +89,23 @@ WSGI_APPLICATION = 'restaurant.wsgi.application'
 
 # Initialise environment variables
 env = environ.Env()
-environ.Env.read_env()  # Automatically picks .env in project root
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))  # Automatically picks .env in project root
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DB_NAME", default="restaurant_dbs"),
-        "USER": env("DB_USER", default="restaurants_user"),
-        "PASSWORD": env("DB_PASSWORD", default="mypassword"),
-        "HOST": env("DB_HOST", default="localhost"),
-        "PORT": env("DB_PORT", default="5432"),
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": env("DB_NAME", default="restaurants_db"), # type: ignore
+        "USER": env("DB_USER", default="restaurant_user"), # type: ignore
+        "PASSWORD": env("DB_PASSWORD", default="mypassword"), # type: ignore
+        "HOST": env("DB_HOST", default="localhost"), # type: ignore
+        "PORT": env("DB_PORT", default="3306"), # type: ignore
+        "OPTIONS": {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            "charset": "utf8mb4",
+        },
     }
 }
+
 
 
 # Password validation

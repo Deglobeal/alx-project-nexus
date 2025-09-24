@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: restaurant-api
+    env: python
+    plan: free
+    branch: main
+    rootDirectory: restaurant
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn restaurant.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: restaurant_db
+          property: connectionString
+    autoDeploy: true
+
+databases:
+  - name: restaurant_db
+    plan: free
+    databaseName: restaurant_db
+    user: restaurant_user
+    

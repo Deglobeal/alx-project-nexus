@@ -1,31 +1,34 @@
-services:
-  db:
-    image: postgres:15
-    container_name: restaurant_db
-    restart: always
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+version: "3.9"
 
+services:
   web:
-    build:
-      context: .
-      dockerfile: ./restaurant/Dockerfile
-    container_name: restaurant_web
-    command: python manage.py runserver 0.0.0.0:8000
+    build: .
+    command: >
+      sh -c "python restaurant/manage.py migrate &&
+             python restaurant/manage.py createsuperuser --noinput || true &&
+             python restaurant/manage.py runserver 0.0.0.0:8000"
     volumes:
-      - ./restaurant:/app
+      - .:/app
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     depends_on:
       - db
-    env_file:
-      - .env.docker
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+    ports:
+      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
 
 volumes:
-  postgres_data:
+  mysql_data:

@@ -1,13 +1,13 @@
-#! web-C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus\restaurant-persistentVolumeClaim.yaml
+#! web-C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus-persistentVolumeClaim.yaml
 # Generated code, do not edit
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-    name: web-c--users-pc-desktop-intenship-alx-files-alx-project-nexus-restaurant
+    name: web-c--users-pc-desktop-intenship-alx-files-alx-project-nexus
     namespace: alx-project-nexus
     labels:
         com.docker.compose.service: web
-        com.docker.compose.volume: C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus\restaurant
+        com.docker.compose.volume: C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus
 spec:
     accessModes:
         # TODO would need to check which services use this volume

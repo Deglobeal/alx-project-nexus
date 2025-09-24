@@ -7,5 +7,5 @@ resources:
 patches:
     - path: db-postgres_data-persistentVolumeClaim.yaml
     - path: db-service.yaml
-    - path: web-C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus\restaurant-persistentVolumeClaim.yaml
+    - path: web-C:\Users\PC\Desktop\intenship\Alx_files\alx-project-nexus-persistentVolumeClaim.yaml
     - path: web-service.yaml
