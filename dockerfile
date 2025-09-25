@@ -1,31 +1,25 @@
-# Use Python slim image
-FROM python:3.11-slim
+FROM python:3.12-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set working directory
 WORKDIR /app
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    libpq-dev gcc netcat-traditional \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first
-COPY requirements.txt /app/
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y gcc libmariadb-dev build-essential netcat && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
-# Copy the rest of the app
-COPY . /app/
+# Copy project files
+COPY . .
 
-# Default command (can be overridden in docker-compose.yml)
-CMD ["python", "restaurant/manage.py", "runserver", "0.0.0.0:8000"]
+# Make entrypoint executable
+RUN chmod +x /app/entrypoint.sh
 
+# Expose port
+EXPOSE 8000
 
-RUN apt-get update && apt-get install -y default-libmysqlclient-dev pkg-config
-RUN pip install mysqlclient
-RUN pip install django-cors-headers
+# Set entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]

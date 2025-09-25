@@ -1,12 +1,24 @@
-version: "3.9"
+version: '3.9'
 
 services:
+  db:
+    image: mysql:8.1
+    container_name: restaurant-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
   web:
     build: .
-    command: >
-      sh -c "python restaurant/manage.py migrate &&
-             python restaurant/manage.py createsuperuser --noinput || true &&
-             python restaurant/manage.py runserver 0.0.0.0:8000"
+    container_name: restaurant-web
+    command: ["gunicorn", "restaurant.wsgi:application", "--bind", "0.0.0.0:8000"]
     volumes:
       - .:/app
     ports:
@@ -16,19 +28,5 @@ services:
     depends_on:
       - db
 
-  db:
-    image: mysql:8.0
-    restart: always
-    environment:
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-    ports:
-      - "3306:3306"
-    command: --default-authentication-plugin=mysql_native_password
-    volumes:
-      - mysql_data:/var/lib/mysql
-
 volumes:
-  mysql_data:
+  db_data:

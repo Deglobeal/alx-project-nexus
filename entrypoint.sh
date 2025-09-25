@@ -1,28 +1,28 @@
 #!/bin/sh
 
-# Exit immediately if a command fails
-set -e
+echo "Waiting for database..."
 
-# Apply database migrations
-echo "Applying database migrations..."
-python restaurant/manage.py migrate --noinput
+# Wait until MySQL is ready
+while ! nc -z $DB_HOST $DB_PORT; do
+  sleep 0.1
+done
 
-# Create superuser if it doesn't exist
-echo "Creating superuser..."
-python restaurant/manage.py shell << END
-from django.contrib.auth import get_user_model
-User = get_user_model()
-import os
-username = os.environ.get("DJANGO_SUPERUSER_USERNAME", "admin")
-email = os.environ.get("DJANGO_SUPERUSER_EMAIL", "admin@example.com")
-password = os.environ.get("DJANGO_SUPERUSER_PASSWORD", "admin123")
-if not User.objects.filter(username=username).exists():
-    User.objects.create_superuser(username=username, email=email, password=password)
-    print("Superuser created.")
-else:
-    print("Superuser already exists.")
-END
+echo "Database started"
 
-# Start server
-echo "Starting server..."
-exec "$@"
+# Run migrations
+python manage.py makemigrations
+python manage.py migrate
+
+# Create superuser if not exists
+echo "from django.contrib.auth import get_user_model; \
+User = get_user_model(); \
+username='${DJANGO_SUPERUSER_USERNAME}'; \
+email='${DJANGO_SUPERUSER_EMAIL}'; \
+password='${DJANGO_SUPERUSER_PASSWORD}'; \
+User.objects.filter(username=username).exists() or User.objects.create_superuser(username, email, password)" | python manage.py shell
+
+# Collect static files
+python manage.py collectstatic --noinput
+
+# Run Gunicorn server
+gunicorn restaurant.wsgi:application --bind 0.0.0.0:8000
