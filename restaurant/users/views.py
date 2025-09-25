@@ -6,7 +6,8 @@ from rest_framework import generics
 from django.contrib.auth import get_user_model
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth import update_session_auth_hash
-from typing import Any, Dict
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 import logging
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_str
@@ -33,47 +34,12 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    @action(detail=False, methods=['get', 'post'])
-    def register(self, request):
-        if request.method == 'GET':
-            return Response({"message": "Use POST to register a new user."})
-
-        serializer = UserRegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({
-                'user': UserSerializer(user).data,
-                'message': 'User created successfully'
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=False, methods=['post'])
-    def login(self, request):
-        serializer = UserLoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        validated_data = serializer.validated_data
-        if not isinstance(validated_data, dict) or 'user' not in validated_data:
-            return Response({'error': 'Invalid login data'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        user = validated_data['user']
-        login(request, user)
-        return Response({
-            'user': UserSerializer(user).data,
-            'message': 'Logged in successfully'
-        }, status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['post'])
-    def logout(self, request):
-        logout(request)
-        return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
-
-
 # Password reset views
 # handles password reset requests and confirmations
 # PasswordResetView
 # PasswordResetConfirmView
 
+# Password reset views
 class PasswordResetView(generics.GenericAPIView):
     serializer_class = PasswordResetSerializer
 
@@ -88,8 +54,6 @@ class PasswordResetView(generics.GenericAPIView):
         reset_link = serializer.save()
         logger.info(f"Password reset link generated: {reset_link}")
         return Response({"reset_link": reset_link}, status=status.HTTP_200_OK)
-
-# PasswordResetConfirmView
 
 class PasswordResetConfirmView(generics.GenericAPIView):
     serializer_class = PasswordResetConfirmSerializer
@@ -120,4 +84,46 @@ class PasswordResetConfirmView(generics.GenericAPIView):
                           status=status.HTTP_200_OK)
         else:
             return Response({"error": "Invalid reset link"}, 
-                          status=status.HTTP_400_BAD_REQUEST)
+                          status=status.HTTP_400_BAD_REQUEST)       
+
+# Authentication views - Only one set of register, login, logout
+class UserRegisterView(generics.CreateAPIView):
+    serializer_class = UserRegisterSerializer
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({
+            'user': UserSerializer(user).data,
+            'message': 'User created successfully'
+        }, status=status.HTTP_201_CREATED)
+
+class UserLoginView(generics.GenericAPIView):
+    serializer_class = UserLoginSerializer
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        user = serializer.validated_data['user']
+        login(request, user)
+        
+        # Return JSON response to prevent redirect
+        return Response({
+            'user': UserSerializer(user).data,
+            'message': 'Logged in successfully'
+        }, status=status.HTTP_200_OK)
+
+class UserLogoutView(generics.GenericAPIView):
+    def post(self, request, *args, **kwargs):
+        logout(request)
+        return Response({'message': 'Logged out successfully'}, status=status.HTTP_200_OK)
+    
+
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)

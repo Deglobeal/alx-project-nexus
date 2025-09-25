@@ -1,9 +1,11 @@
+
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 import re
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
+from django.db import IntegrityError
 from .models import User
 
 
@@ -45,6 +47,11 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
+        # Check if email already exists
+        email = attrs.get('email')
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({"email": "A user with this email already exists."})
+
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
 
@@ -69,6 +76,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Password must contain at least one special character.")
 
         return attrs
+
 # Create method to handle user creation with hashed password
 # and removal of password2 from validated data
 # Also saves address and phone fields
@@ -78,7 +86,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         raw_password = validated_data.pop('password')
         user = User(**validated_data)
         user.set_password(raw_password)
-        user.save()
+        try:
+            user.save()
+        except IntegrityError as e:
+            if 'email' in str(e).lower():
+                raise serializers.ValidationError({"email": "A user with this email already exists."})
+            raise
         return user
 
 # Serializer for user login
@@ -118,16 +131,23 @@ class PasswordResetSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         try:
-            self.user = User.objects.get(email=value)
+            # Now that emails are unique, we can safely use get()
+            user = User.objects.get(email=value)
+            # Store the user instance in the serializer context
+            self.context['user'] = user
         except User.DoesNotExist:
-            raise serializers.ValidationError("No user with this email.")
+            raise serializers.ValidationError("No user with this email address.")
         return value
 
     def save(self, **kwargs):
-        user = self.user
+        # Get the user from context
+        user = self.context.get('user')
+        if not user:
+            raise serializers.ValidationError("User not found.")
+            
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
-        reset_link = f"http://localhost:8000/reset-password/{uid}/{token}/"
+        reset_link = f"http://localhost:8000/api/users/auth/reset-password/{uid}/{token}/"
         # In production, send via email
         return reset_link
 

@@ -12,6 +12,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
     address = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
+    email = models.EmailField(unique=True)  # Enforce unique email addresses
 
     # Avoid reverse-name clashes with the default User model
     groups = models.ManyToManyField(
