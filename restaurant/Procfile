@@ -1,1 +1,1 @@
-web: gunicorn restaurant/restaurant.wsgi:application --bind 0.0.0.0:$PORT
+gunicorn --pythonpath .. restaurant.wsgi:application --bind 0.0.0.0:8080
