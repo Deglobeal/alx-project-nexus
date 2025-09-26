@@ -23,10 +23,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-secret-key")
+SECRET_KEY = 'django-insecure-@fjz_zeesg8oug0$b$&l53$z%0b1h4&0bc)x+h_3&$z32^b*zr'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "0") == "1"
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
@@ -144,22 +144,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Where collectstatic will gather all static files
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# (Optional, but recommended for development)
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
-
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # User model
-AUTH_USER_MODEL = 'users.User'
+Auth_User_Model = 'users.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -167,18 +158,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-
-# 🔒 Security Settings for Production
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = True
-
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = "DENY"
+# settings.py
+LOGIN_REDIRECT_URL = '/api/users/me/'  # or any API endpoint
+LOGOUT_REDIRECT_URL = '/api/users/me/'  # optional
