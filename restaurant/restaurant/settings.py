@@ -91,20 +91,31 @@ WSGI_APPLICATION = 'restaurant.wsgi.application'
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))  # Automatically picks .env in project root
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": env("DB_NAME", default="restaurants_db"), # type: ignore
-        "USER": env("DB_USER", default="restaurant_user"), # type: ignore
-        "PASSWORD": env("DB_PASSWORD", default="mypassword"), # type: ignore
-        "HOST": env("DB_HOST", default="localhost"), # type: ignore
-        "PORT": env("DB_PORT", default="3306"), # type: ignore
-        "OPTIONS": {
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-            "charset": "utf8mb4",
-        },
+if os.environ.get("PYTHONANYWHERE") == "1":
+    # Production: PythonAnywhere MySQL
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": env("DB_NAME", default="restaurants_db"), # type: ignore
+            "USER": env("DB_USER", default="restaurant_user"), # type: ignore
+            "PASSWORD": env("DB_PASSWORD", default="mypassword"), # type: ignore
+            "HOST": env("DB_HOST", default="localhost"), # type: ignore
+            "PORT": env("DB_PORT", default="3306"), # type: ignore
+            "OPTIONS": {
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+                "charset": "utf8mb4",
+            },
+        }
     }
-}
+else:
+    # Local development: SQLite
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 
